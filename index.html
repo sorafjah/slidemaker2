@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>スライドメーカー（修正版）</title>
+  <title>Slide Maker 2</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -73,8 +73,8 @@
   <div class="max-w-6xl mx-auto p-4 sm:p-8">
     <header class="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
       <div>
-        <h1 class="text-3xl font-black text-indigo-700 tracking-tight">Slide Maker <span class="text-sm font-medium text-gray-400">v2.4</span></h1>
-        <p class="text-gray-500 font-medium">文章からスライドを生成・編集・保存（コピペ貼り付け対応）</p>
+        <h1 class="text-3xl font-black text-indigo-700 tracking-tight">Slide Maker 2</h1>
+        <p class="text-gray-500 font-medium text-sm">文章からスライドを生成・編集・保存</p>
       </div>
       <nav class="flex bg-gray-200/50 p-1 rounded-xl space-x-1" aria-label="Tabs">
         <button id="tab-editor" class="flex-1 md:flex-none py-2 px-6 rounded-lg font-bold text-sm transition bg-white text-indigo-600 shadow-sm">作成・編集</button>
@@ -89,18 +89,33 @@
           
           <!-- 左カラム：設定とリスト -->
           <div class="lg:col-span-4 space-y-6">
+            <!-- 1. GPTs連携 -->
             <section class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
               <h2 class="text-lg font-bold mb-4 flex items-center gap-2">
                 <span class="bg-indigo-100 text-indigo-600 w-6 h-6 rounded-full flex items-center justify-center text-xs">1</span>
-                データのインポート
+                スライドデータを作成
               </h2>
-              <textarea id="json-input" rows="4" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 transition text-sm outline-none" placeholder='[{"text_content": "ここに内容...", "image_url": ""}]'></textarea>
-              <button id="import-json-btn" class="mt-3 w-full bg-indigo-600 text-white font-bold py-3 px-4 rounded-xl hover:bg-indigo-700 transition shadow-lg shadow-indigo-200">インポート実行</button>
+              <p class="text-xs text-gray-500 mb-3">まずはAIを使って、スライド用のJSONデータを作成しましょう。</p>
+              <a href="https://chatgpt.com/g/g-68e79a810ad48191b8433cf72d5ea89b-2ze-json" target="_blank" class="flex items-center justify-center gap-2 w-full bg-white border-2 border-indigo-600 text-indigo-600 font-bold py-3 px-4 rounded-xl hover:bg-indigo-50 transition shadow-sm text-sm">
+                テキストをJSON化するGPTs
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+              </a>
             </section>
 
+            <!-- 2. インポート -->
             <section class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
               <h2 class="text-lg font-bold mb-4 flex items-center gap-2">
                 <span class="bg-indigo-100 text-indigo-600 w-6 h-6 rounded-full flex items-center justify-center text-xs">2</span>
+                データの読み込み
+              </h2>
+              <textarea id="json-input" rows="4" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 transition text-sm outline-none" placeholder='GPTsから出力されたJSONをここに貼り付けてください...'></textarea>
+              <button id="import-json-btn" class="mt-3 w-full bg-indigo-600 text-white font-bold py-3 px-4 rounded-xl hover:bg-indigo-700 transition shadow-lg shadow-indigo-200">インポート実行</button>
+            </section>
+
+            <!-- 3. 保存・書き出し -->
+            <section class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+              <h2 class="text-lg font-bold mb-4 flex items-center gap-2">
+                <span class="bg-indigo-100 text-indigo-600 w-6 h-6 rounded-full flex items-center justify-center text-xs">3</span>
                 保存・書き出し
               </h2>
               <input type="text" id="slide-name" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl mb-3 text-sm font-bold" placeholder="スライド名を入力">
@@ -110,19 +125,19 @@
               </div>
               
               <div class="space-y-2 pt-4 border-t border-gray-100">
-                <button id="export-pdf-btn" class="w-full py-2.5 rounded-xl border-2 border-red-500 text-red-600 font-bold hover:bg-red-50 transition flex items-center justify-center gap-2">
+                <button id="export-pdf-btn" class="w-full py-2.5 rounded-xl border-2 border-red-500 text-red-600 font-bold hover:bg-red-50 transition flex items-center justify-center gap-2 text-sm">
                    PDFで書き出す
                 </button>
-                <button id="export-pptx-btn" class="w-full py-2.5 rounded-xl border-2 border-orange-500 text-orange-600 font-bold hover:bg-orange-50 transition flex items-center justify-center gap-2">
+                <button id="export-pptx-btn" class="w-full py-2.5 rounded-xl border-2 border-orange-500 text-orange-600 font-bold hover:bg-orange-50 transition flex items-center justify-center gap-2 text-sm">
                    PowerPointで保存
                 </button>
               </div>
             </section>
 
             <section class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
-              <h3 class="font-bold text-sm text-gray-500 mb-3 px-2">保存済みスライド</h3>
+              <h3 class="font-bold text-sm text-gray-500 mb-3 px-2">管理</h3>
               <select id="saved-files-select" class="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl mb-2 text-sm outline-none">
-                <option value="">選択してください...</option>
+                <option value="">保存済みスライドを選択...</option>
               </select>
               <div class="flex gap-2">
                 <button id="load-slides-btn" class="flex-1 bg-indigo-50 text-indigo-700 font-bold py-2 rounded-xl text-xs hover:bg-indigo-100 transition">読み込み</button>
@@ -158,9 +173,9 @@
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label class="block text-sm font-bold text-gray-700 mb-2">画像設定（貼り付け Ctrl+V も可）</label>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">画像設定（貼り付け対応）</label>
                     <div id="image-drop-zone" class="h-32 border-2 border-dashed border-gray-300 rounded-2xl flex flex-col items-center justify-center bg-gray-50 hover:bg-indigo-50 transition cursor-pointer relative overflow-hidden">
-                      <p class="text-xs text-gray-400 font-medium text-center px-4">画像をドロップ・クリック<br>またはどこでも貼り付け</p>
+                      <p class="text-xs text-gray-400 font-medium text-center px-4">画像をドロップ・クリック<br>またはどこでも貼り付け(Ctrl+V)</p>
                       <input type="file" id="file-upload" class="hidden" accept="image/*">
                       <input type="hidden" id="image-url-input">
                       <div id="image-loading-overlay" class="hidden absolute inset-0 bg-white/80 flex items-center justify-center"><div class="loader"></div></div>
@@ -468,7 +483,7 @@
       }
     }
 
-    // --- PPTX Export (Revised with Aspect Ratio fix) ---
+    // --- PPTX Export ---
     async function getImageDimensions(dataUrl) {
         return new Promise((resolve) => {
             const img = new Image();
@@ -485,7 +500,7 @@
       showLoader("PPTXを作成中...");
       try {
         const pptx = new PptxGenJS();
-        pptx.layout = 'LAYOUT_4x3'; // デフォルト 10 x 7.5 インチ
+        pptx.layout = 'LAYOUT_4x3';
         
         for (const s of slides) {
           const slide = pptx.addSlide();
@@ -498,37 +513,28 @@
             let imgX = 0.5;
             let imgY = 0.5;
 
-            // 元画像の比率に基づいて配置サイズを計算（Stretchingを防止）
             if (dims.w > 0 && dims.h > 0) {
                 const ratio = dims.w / dims.h;
                 const targetAreaRatio = 9.0 / 4.5;
                 if (ratio > targetAreaRatio) {
-                    // 画像の方が横長
                     imgW = 9.0;
                     imgH = 9.0 / ratio;
                 } else {
-                    // 画像の方が縦長
                     imgH = 4.5;
                     imgW = 4.5 * ratio;
                 }
-                // 中央寄せ
                 imgX = 0.5 + (9.0 - imgW) / 2;
                 imgY = 0.5 + (4.5 - imgH) / 2;
             }
 
-            slide.addImage({
-              data: s.image_url,
-              x: imgX, y: imgY, w: imgW, h: imgH
-            });
+            slide.addImage({ data: s.image_url, x: imgX, y: imgY, w: imgW, h: imgH });
 
-            // テキスト枠
             slide.addText(s.text_content || "", {
               x: 0.5, y: 5.2, w: 9.0, h: 1.8,
               align: 'center', valign: 'middle',
               fontSize: 24, color: '333333', bold: true
             });
           } else {
-            // テキストのみ（中央）
             slide.addText(s.text_content || "", {
               x: 1.0, y: 1.0, w: 8.0, h: 5.5,
               align: 'center', valign: 'middle',
@@ -564,7 +570,6 @@
     }
 
     function setupEvents() {
-      // 貼り付け (Paste) イベント
       window.addEventListener('paste', (e) => {
           if (state.mode !== 'editor' || state.editor.currentSlideIndex === -1) return;
           const items = (e.clipboardData || e.originalEvent.clipboardData).items;
@@ -573,16 +578,14 @@
                   const file = item.getAsFile();
                   handleImage(file);
                   showNotification("画像を貼り付けました", "success");
-                  break; // 最初に見つかった画像のみ処理
+                  break;
               }
           }
       });
 
-      // タブ切り替え
       dom.tabEditor.onclick = () => { state.mode = 'editor'; dom.tabEditor.className = "flex-1 md:flex-none py-2 px-6 rounded-lg font-bold text-sm transition bg-white text-indigo-600 shadow-sm"; dom.tabViewer.className = "flex-1 md:flex-none py-2 px-6 rounded-lg font-bold text-sm transition text-gray-500 hover:text-gray-700"; renderEditor(); dom.editorView.classList.remove('hidden'); dom.viewerView.classList.add('hidden'); };
       dom.tabViewer.onclick = () => { state.mode = 'viewer'; dom.tabViewer.className = "flex-1 md:flex-none py-2 px-6 rounded-lg font-bold text-sm transition bg-white text-indigo-600 shadow-sm"; dom.tabEditor.className = "flex-1 md:flex-none py-2 px-6 rounded-lg font-bold text-sm transition text-gray-500 hover:text-gray-700"; renderViewer(); dom.viewerView.classList.remove('hidden'); dom.editorView.classList.add('hidden'); updateFileList(); };
 
-      // インポート
       dom.importJsonBtn.onclick = () => {
         try {
           const raw = JSON.parse(dom.jsonInput.value.replace(/,(?=\s*[}\]])/g, ''));
@@ -590,17 +593,16 @@
           state.editor.currentSlideIndex = state.editor.slides.length > 0 ? 0 : -1;
           renderEditor();
           showNotification("インポートしました", "success");
+          dom.jsonInput.value = "";
         } catch (e) { showNotification("JSON形式が正しくありません", "error"); }
       };
 
-      // 編集操作
       dom.textContentInput.oninput = (e) => { if (state.editor.currentSlideIndex === -1) return; state.editor.slides[state.editor.currentSlideIndex].text_content = e.target.value; renderEditor(); };
       dom.editorPrevArrow.onclick = () => { if (state.editor.currentSlideIndex > 0) { state.editor.currentSlideIndex--; renderEditor(); } };
       dom.editorNextArrow.onclick = () => { if (state.editor.currentSlideIndex < state.editor.slides.length - 1) { state.editor.currentSlideIndex++; renderEditor(); } };
       dom.addSlideBtn.onclick = () => { const i = state.editor.currentSlideIndex; state.editor.slides.splice(i + 1, 0, { text_content: "", image_url: "", cpl: 0 }); state.editor.currentSlideIndex = i + 1; renderEditor(); };
       dom.removeSlideBtn.onclick = async () => { if (state.editor.currentSlideIndex === -1) return; if (await showConfirm("このスライドを削除しますか？")) { state.editor.slides.splice(state.editor.currentSlideIndex, 1); state.editor.currentSlideIndex = state.editor.slides.length > 0 ? Math.max(0, state.editor.currentSlideIndex - 1) : -1; renderEditor(); } };
 
-      // 画像アップロード・削除
       dom.imageDropZone.onclick = () => dom.fileUploadInput.click();
       dom.fileUploadInput.onchange = (e) => handleImage(e.target.files[0]);
       dom.imageDropZone.ondragover = (e) => { e.preventDefault(); dom.imageDropZone.classList.add('dragover'); };
@@ -608,12 +610,10 @@
       dom.imageDropZone.ondrop = (e) => { e.preventDefault(); dom.imageDropZone.classList.remove('dragover'); handleImage(e.dataTransfer.files[0]); };
       dom.removeImageBtn.onclick = () => { if (state.editor.currentSlideIndex === -1) return; state.editor.slides[state.editor.currentSlideIndex].image_url = ""; renderEditor(); };
 
-      // 文字サイズ設定
       dom.slideCplUp.onclick = () => { const s = state.editor.slides[state.editor.currentSlideIndex]; s.cpl = Math.min(CPL_MAX, (s.cpl || state.globalCpl) + 1); renderEditor(); };
       dom.slideCplDown.onclick = () => { const s = state.editor.slides[state.editor.currentSlideIndex]; s.cpl = Math.max(CPL_MIN, (s.cpl || state.globalCpl) - 1); renderEditor(); };
       dom.slideCplReset.onclick = () => { const s = state.editor.slides[state.editor.currentSlideIndex]; if (s) delete s.cpl; renderEditor(); };
 
-      // 保存・読み込み・削除
       dom.saveSlidesBtn.onclick = () => {
         const name = dom.slideNameInput.value.trim();
         if (!name) return showNotification("スライド名を入力してください", "error");
@@ -634,12 +634,10 @@
         if (name && await showConfirm(`「${name}」を削除しますか？`)) { localStorage.removeItem(STORAGE_KEY + name); updateFileList(); showNotification("削除しました"); }
       };
 
-      // 書き出し
       dom.exportPdfBtn.onclick = exportPdf;
       dom.exportPptxBtn.onclick = exportPptx;
       dom.exportJsonBtn.onclick = () => { if (state.editor.slides.length === 0) return; navigator.clipboard.writeText(JSON.stringify(state.editor.slides)); showNotification("JSONをクリップボードにコピーしました"); };
 
-      // ビューアー操作
       dom.startViewerBtn.onclick = () => {
         const name = dom.viewerFileSelect.value;
         if (!name) return;
@@ -655,12 +653,11 @@
 
     function updateFileList() {
       const keys = Object.keys(localStorage).filter(k => k.startsWith(STORAGE_KEY)).map(k => k.replace(STORAGE_KEY, ''));
-      const options = '<option value="">選択してください...</option>' + keys.map(k => `<option value="${k}">${k}</option>`).join('');
+      const options = '<option value="">保存済みスライドを選択...</option>' + keys.map(k => `<option value="${k}">${k}</option>`).join('');
       dom.savedFilesSelect.innerHTML = options;
       dom.viewerFileSelect.innerHTML = options;
     }
 
-    // 初期化
     setupEvents();
     updateFileList();
     renderEditor();
