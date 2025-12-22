@@ -119,10 +119,8 @@
                 保存・書き出し
               </h2>
               <input type="text" id="slide-name" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl mb-3 text-sm font-bold" placeholder="スライド名を入力">
-              <div class="grid grid-cols-2 gap-2 mb-4">
-                <button id="save-slides-btn" class="bg-emerald-500 text-white font-bold py-2 rounded-xl hover:bg-emerald-600 transition">ブラウザ保存</button>
-                <button id="export-json-btn" class="bg-gray-100 text-gray-600 font-bold py-2 rounded-xl hover:bg-gray-200 transition">JSONコピー</button>
-              </div>
+              
+              <button id="save-slides-btn" class="w-full bg-emerald-500 text-white font-bold py-3 mb-4 rounded-xl hover:bg-emerald-600 transition shadow-lg shadow-emerald-100">ブラウザに保存</button>
               
               <div class="space-y-2 pt-4 border-t border-gray-100">
                 <button id="export-pdf-btn" class="w-full py-2.5 rounded-xl border-2 border-red-500 text-red-600 font-bold hover:bg-red-50 transition flex items-center justify-center gap-2 text-sm">
@@ -274,7 +272,6 @@
       savedFilesSelect: document.getElementById('saved-files-select'),
       exportPdfBtn: document.getElementById('export-pdf-btn'),
       exportPptxBtn: document.getElementById('export-pptx-btn'),
-      exportJsonBtn: document.getElementById('export-json-btn'),
 
       editorSlideContainer: document.getElementById('editor-slide-container'),
       editorPrevArrow: document.getElementById('editor-prev-arrow'),
@@ -636,21 +633,6 @@
 
       dom.exportPdfBtn.onclick = exportPdf;
       dom.exportPptxBtn.onclick = exportPptx;
-      dom.exportJsonBtn.onclick = () => { 
-        if (state.editor.slides.length === 0) return; 
-        const json = JSON.stringify(state.editor.slides);
-        const textArea = document.createElement("textarea");
-        textArea.value = json;
-        document.body.appendChild(textArea);
-        textArea.select();
-        try {
-          document.execCommand('copy');
-          showNotification("JSONをクリップボードにコピーしました", "success");
-        } catch (err) {
-          showNotification("コピーに失敗しました", "error");
-        }
-        document.body.removeChild(textArea);
-      };
 
       dom.startViewerBtn.onclick = () => {
         const name = dom.viewerFileSelect.value;
