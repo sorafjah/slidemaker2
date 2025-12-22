@@ -636,7 +636,21 @@
 
       dom.exportPdfBtn.onclick = exportPdf;
       dom.exportPptxBtn.onclick = exportPptx;
-      dom.exportJsonBtn.onclick = () => { if (state.editor.slides.length === 0) return; navigator.clipboard.writeText(JSON.stringify(state.editor.slides)); showNotification("JSONをクリップボードにコピーしました"); };
+      dom.exportJsonBtn.onclick = () => { 
+        if (state.editor.slides.length === 0) return; 
+        const json = JSON.stringify(state.editor.slides);
+        const textArea = document.createElement("textarea");
+        textArea.value = json;
+        document.body.appendChild(textArea);
+        textArea.select();
+        try {
+          document.execCommand('copy');
+          showNotification("JSONをクリップボードにコピーしました", "success");
+        } catch (err) {
+          showNotification("コピーに失敗しました", "error");
+        }
+        document.body.removeChild(textArea);
+      };
 
       dom.startViewerBtn.onclick = () => {
         const name = dom.viewerFileSelect.value;
