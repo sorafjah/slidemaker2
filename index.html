@@ -19,7 +19,6 @@
     .sortable-item.dragging{opacity:.5}
     .sortable-item.drop-target{outline:2px dashed #4f46e5}
     
-    /* アスペクト比 4:3 の維持 */
     .aspect-4-3{position:relative;width:100%;padding-top:75%;}
     .aspect-4-3>.aspect-content{position:absolute;inset:0}
     
@@ -27,7 +26,6 @@
     .nav-arrow{position:absolute;top:50%;transform:translateY(-50%);font-size:2rem;color:#9ca3af;cursor:pointer;user-select:none;z-index:10}
     .nav-arrow:hover{color:#4f46e5}.nav-arrow.left{left:-2.5rem}.nav-arrow.right{right:-2.5rem}
     
-    /* キャプチャ用の一時レイヤー */
     #capture-area {
       position: absolute;
       left: -9999px;
@@ -123,6 +121,9 @@
               <button id="save-slides-btn" class="w-full bg-emerald-500 text-white font-bold py-3 mb-4 rounded-xl hover:bg-emerald-600 transition shadow-lg shadow-emerald-100">ブラウザに保存</button>
               
               <div class="space-y-2 pt-4 border-t border-gray-100">
+                <button id="export-html-btn" class="w-full py-2.5 rounded-xl border-2 border-indigo-500 text-indigo-600 font-bold hover:bg-indigo-50 transition flex items-center justify-center gap-2 text-sm">
+                  HTMLで保存（画像込み）
+                </button>
                 <button id="export-pdf-btn" class="w-full py-2.5 rounded-xl border-2 border-red-500 text-red-600 font-bold hover:bg-red-50 transition flex items-center justify-center gap-2 text-sm">
                    PDFで書き出す
                 </button>
@@ -272,6 +273,7 @@
       savedFilesSelect: document.getElementById('saved-files-select'),
       exportPdfBtn: document.getElementById('export-pdf-btn'),
       exportPptxBtn: document.getElementById('export-pptx-btn'),
+      exportHtmlBtn: document.getElementById('export-html-btn'),
 
       editorSlideContainer: document.getElementById('editor-slide-container'),
       editorPrevArrow: document.getElementById('editor-prev-arrow'),
@@ -434,6 +436,110 @@
         dom.viewerTotal.textContent = slides.length;
         requestAnimationFrame(() => autoSizeText(dom.viewerSlideContainer, slide));
       }
+    }
+
+    // --- HTML Export ---
+    function exportHtml() {
+      const slides = state.editor.slides;
+      if (!slides.length) return showNotification("スライドがありません", "error");
+
+      const slideName = dom.slideNameInput.value.trim() || 'slides';
+
+      // スライドデータをJSON化（Base64画像込み）
+      const slidesJson = JSON.stringify(slides);
+
+      // スライドごとのHTMLスニペット生成（autoSizeはJS内で再計算）
+      const htmlContent = `<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>${slideName}</title>
+  <script src="https://cdn.tailwindcss.com"><\/script>
+  <style>
+    body { margin: 0; background: #1e1e2e; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; font-family: sans-serif; }
+    .slide-wrapper { width: min(90vw, calc(90vh * 4 / 3)); aspect-ratio: 4/3; position: relative; }
+    .slide-inner { width: 100%; height: 100%; }
+    .nav-btn { background: rgba(255,255,255,0.15); border: none; color: white; font-size: 2rem; width: 3rem; height: 3rem; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s; }
+    .nav-btn:hover { background: rgba(255,255,255,0.3); }
+    .controls { display: flex; align-items: center; gap: 1.5rem; margin-top: 1.5rem; }
+    .counter { color: rgba(255,255,255,0.6); font-size: 0.85rem; font-weight: bold; min-width: 4rem; text-align: center; }
+    .auto-text { font-weight: bold; color: #1f2937; text-align: center; line-height: 1.4; word-break: break-all; }
+    @media (max-width: 600px) { .slide-wrapper { width: 98vw; } }
+  </style>
+</head>
+<body>
+  <div class="slide-wrapper">
+    <div class="slide-inner" id="slide-display"></div>
+  </div>
+  <div class="controls">
+    <button class="nav-btn" id="prev-btn">&#10094;</button>
+    <div class="counter"><span id="cur-num">1</span> / <span id="tot-num">1</span></div>
+    <button class="nav-btn" id="next-btn">&#10095;</button>
+  </div>
+
+  <script>
+    const slides = ${slidesJson};
+    let idx = 0;
+
+    function createSlideHTML(slide) {
+      const text = (slide.text_content || "").replace(/\\n/g, '<br>');
+      const img = slide.image_url
+        ? '<div style="flex:1;display:flex;align-items:center;justify-content:center;padding:1rem;overflow:hidden;min-height:0"><img src="' + slide.image_url + '" style="max-width:100%;max-height:100%;object-fit:contain;"></div>'
+        : '';
+      const textWrap = slide.image_url
+        ? 'style="width:100%;padding:1rem 1.5rem;background:white;flex-shrink:0"'
+        : 'style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;padding:3rem"';
+      return '<div style="width:100%;height:100%;display:flex;flex-direction:column;background:white;overflow:hidden">'
+        + img
+        + '<div ' + textWrap + '>'
+        + '<p class="auto-text" id="slide-text">' + text + '</p>'
+        + '</div></div>';
+    }
+
+    function autoSize(slide) {
+      const p = document.getElementById('slide-text');
+      if (!p) return;
+      const cpl = slide.cpl || 25;
+      const w = document.getElementById('slide-display').offsetWidth || 800;
+      const fs = Math.max(16, Math.min(64, Math.floor(w / cpl)));
+      p.style.fontSize = fs + 'px';
+    }
+
+    function render() {
+      const slide = slides[idx];
+      document.getElementById('slide-display').innerHTML = createSlideHTML(slide);
+      document.getElementById('cur-num').textContent = idx + 1;
+      document.getElementById('tot-num').textContent = slides.length;
+      requestAnimationFrame(() => autoSize(slide));
+    }
+
+    document.getElementById('prev-btn').addEventListener('click', () => { if (idx > 0) { idx--; render(); } });
+    document.getElementById('next-btn').addEventListener('click', () => { if (idx < slides.length - 1) { idx++; render(); } });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { if (idx > 0) { idx--; render(); } }
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') { if (idx < slides.length - 1) { idx++; render(); } }
+    });
+
+    window.addEventListener('resize', () => autoSize(slides[idx]));
+    render();
+  <\/script>
+</body>
+</html>`;
+
+      // Blob経由でダウンロード
+      const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = slideName + '.html';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 3000);
+
+      showNotification("HTMLを保存しました", "success");
     }
 
     // --- PDF Export ---
@@ -631,6 +737,7 @@
         if (name && await showConfirm(`「${name}」を削除しますか？`)) { localStorage.removeItem(STORAGE_KEY + name); updateFileList(); showNotification("削除しました"); }
       };
 
+      dom.exportHtmlBtn.onclick = exportHtml;
       dom.exportPdfBtn.onclick = exportPdf;
       dom.exportPptxBtn.onclick = exportPptx;
 
